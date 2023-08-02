@@ -20,7 +20,7 @@ import (
 	//	"github.com/pkg/profile"
 )
 
-var version string = "1.0.0"
+var version string = "1.0.1"
 
 var clog *log.Entry
 
@@ -256,7 +256,7 @@ func parseWorkRecords(records []string) []WorkRecord {
 
 	for _, record := range records {
 		// Read original fileds
-		fields := strings.Split(record, ",")
+		fields := strings.SplitN(record, ",", 5)
 
 		var wr WorkRecord
 		wr.Date = fields[0]
