@@ -20,7 +20,7 @@ import (
 	//	"github.com/pkg/profile"
 )
 
-var version string = "1.0.1"
+var version string = "1.0.2"
 
 var clog *log.Entry
 
@@ -264,6 +264,12 @@ func parseWorkRecords(records []string) []WorkRecord {
 		wr.EndTime = fields[2]
 		wr.Issue = fields[3]
 		wr.Comment = strings.ReplaceAll(fields[4], "\"", "")
+
+		// Validations
+		if wr.Date == "" || wr.StartTime == "" || wr.EndTime == "" || wr.Issue == "" || wr.Comment == "" {
+			clog.WithFields(log.Fields{"record": wr}).Warning("Some fields are empty, skipping the record.")
+			continue
+		}
 
 		// Add duration
 		startDateTimeString := fmt.Sprintf("%s %s:00", wr.Date, wr.StartTime)
