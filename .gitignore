@@ -17,5 +17,8 @@
 # compiled binary
 tired
 
+# test data
+test_data/*
+
 # vim
 *.sw?
