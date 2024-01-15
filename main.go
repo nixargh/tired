@@ -11,7 +11,7 @@ import (
 	//	"github.com/pkg/profile"
 )
 
-var version string = "1.1.1"
+var version string = "1.2.0"
 
 var defaultMarker string = ">>> TIRED <<<"
 
