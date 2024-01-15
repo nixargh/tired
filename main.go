@@ -82,7 +82,13 @@ func main() {
 	}).Info("Timesheet file total lines number.")
 
 	if report {
-		createReport(timesheetCont)
+		daily, weekly, monthly := createReport(timesheetCont)
+		fmt.Printf(
+			"%.1f, %.1f, %.1f\n",
+			float32(daily)/3600,
+			float32(weekly)/3600,
+			float32(monthly)/3600,
+		)
 	} else {
 		sendToJira(timesheetCont)
 	}
@@ -91,7 +97,7 @@ func main() {
 	os.Exit(0)
 }
 
-func createReport(timesheetCont []string) {
+func createReport(timesheetCont []string) (daily int, weekly int, monthly int) {
 	curTime := time.Now()
 	monthBefore := curTime.AddDate(0, -1, 0)
 
@@ -105,13 +111,31 @@ func createReport(timesheetCont []string) {
 		"number": len(monthlyRecords),
 	}).Info("Monthly records number for a report.")
 
-	workRecords, parseErrCount := parseWorkRecords(monthlyRecords)
+	records, parseErrCount := parseWorkRecords(monthlyRecords)
 	if parseErrCount > 0 {
 		clog.WithFields(log.Fields{
-			"valid":   len(workRecords),
+			"valid":   len(records),
 			"invalid": parseErrCount,
 		}).Fatal("Timeshit parsing finished with errors.")
 	}
+
+	for _, record := range records {
+		if record.ParsedStartTime.Day() == curTime.Day() {
+			daily += record.Duration
+		}
+
+		rWeekY, rWeekN := record.ParsedStartTime.ISOWeek()
+		cWeekY, cWeekN := curTime.ISOWeek()
+		if rWeekY == cWeekY && rWeekN == cWeekN {
+			weekly += record.Duration
+		}
+
+		if record.ParsedStartTime.Month() == curTime.Month() {
+			monthly += record.Duration
+		}
+	}
+
+	return
 }
 
 func sendToJira(timesheetCont []string) {
