@@ -11,19 +11,23 @@ import (
 	//	"github.com/pkg/profile"
 )
 
-var version string = "1.1.0"
+var version string = "1.1.1"
+
+var defaultMarker string = ">>> TIRED <<<"
 
 var clog *log.Entry
+
+var timesheet string
+var url string
+var username string
+var password string
+var dry bool
 
 func main() {
 	//	defer profile.Start().Stop()
 
-	var url string
-	var username string
-	var password string
-	var timesheet string
 	var debug bool
-	var dry bool
+	var report bool
 	var showVersion bool
 
 	flag.StringVar(&url, "url", "", "Jira url")
@@ -32,6 +36,7 @@ func main() {
 	flag.StringVar(&timesheet, "timesheet", "", "Full path to timesheet file")
 	flag.BoolVar(&debug, "debug", false, "Log debug messages")
 	flag.BoolVar(&dry, "dry", false, "Do a 'dry' run, without real records sending")
+	flag.BoolVar(&report, "report", false, "Show report of daily, weekly and monthly time recorded")
 	flag.BoolVar(&showVersion, "version", false, "TIme REcorDer version")
 
 	flag.Parse()
@@ -58,6 +63,9 @@ func main() {
 
 	clog.Info("Starting Jira Time Reporter.")
 
+	curTime := time.Now().Format(time.RFC3339)
+	clog.WithFields(log.Fields{"date": curTime}).Info("Current date and time.")
+
 	// Validate variables
 	if timesheet == "" {
 		clog.Fatal("'-timesheet' option is mandatory.")
@@ -67,6 +75,46 @@ func main() {
 		clog.Warning("Running in 'dry' mode.")
 	}
 
+	// Read timesheet file
+	timesheetCont := readTimesheet(timesheet)
+	clog.WithFields(log.Fields{
+		"number": len(timesheetCont),
+	}).Info("Timesheet file total lines number.")
+
+	if report {
+		createReport(timesheetCont)
+	} else {
+		sendToJira(timesheetCont)
+	}
+
+	clog.Info("Jira Time Reporter job is finished.")
+	os.Exit(0)
+}
+
+func createReport(timesheetCont []string) {
+	curTime := time.Now()
+	monthBefore := curTime.AddDate(0, -1, 0)
+
+	lastMonth := fmt.Sprintf("%d-%d-", monthBefore.Year(), monthBefore.Month())
+	clog.WithFields(log.Fields{
+		"marker": lastMonth,
+	}).Debug("Last month line prefix.")
+
+	monthlyRecords := getRecordsUntil(timesheetCont, lastMonth)
+	clog.WithFields(log.Fields{
+		"number": len(monthlyRecords),
+	}).Info("Monthly records number for a report.")
+
+	workRecords, parseErrCount := parseWorkRecords(monthlyRecords)
+	if parseErrCount > 0 {
+		clog.WithFields(log.Fields{
+			"valid":   len(workRecords),
+			"invalid": parseErrCount,
+		}).Fatal("Timeshit parsing finished with errors.")
+	}
+}
+
+func sendToJira(timesheetCont []string) {
 	if url == "" {
 		url = promptForSecret("url")
 	}
@@ -79,9 +127,6 @@ func main() {
 		password = promptForSecret("password")
 	}
 
-	curTime := time.Now().Format(time.RFC3339)
-	clog.WithFields(log.Fields{"date": curTime}).Info("Current date and time.")
-
 	tp := jira.BasicAuthTransport{
 		Username: username,
 		Password: password,
@@ -93,21 +138,16 @@ func main() {
 	}
 	clog.Info("Connection to Jira established.")
 
-	// Read timesheet file
+	// Save timesheet file size for later comparison
 	tsFileStat, _ := os.Stat(timesheet)
 
-	timesheetCont := readTimesheet(timesheet)
+	uncommittedRecords := getRecordsUntil(timesheetCont, defaultMarker)
 	clog.WithFields(log.Fields{
-		"number": len(timesheetCont),
-	}).Info("Timesheet file total lines number.")
+		"number": len(uncommittedRecords),
+	}).Info("Uncommitted records number.")
 
-	actualWorkRecords := getActualWorkRecords(timesheetCont)
-	clog.WithFields(log.Fields{
-		"number": len(actualWorkRecords),
-	}).Info("Actual work records number.")
-
-	if len(actualWorkRecords) > 0 {
-		workRecords, parseErrCount := parseWorkRecords(actualWorkRecords)
+	if len(uncommittedRecords) > 0 {
+		workRecords, parseErrCount := parseWorkRecords(uncommittedRecords)
 		if parseErrCount > 0 {
 			clog.WithFields(log.Fields{
 				"valid":   len(workRecords),
@@ -138,7 +178,4 @@ func main() {
 	} else {
 		clog.Warning("No actual work records was found.")
 	}
-
-	clog.Info("Jira Time Reporter job is finished.")
-	os.Exit(0)
 }

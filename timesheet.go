@@ -13,7 +13,7 @@ import (
 
 var timeNow time.Time
 
-type ActualWorkRecords struct {
+type RawRecord struct {
 	LineNumber int
 	Record     string
 }
@@ -46,37 +46,47 @@ func getTimeLocation() *time.Location {
 	return location
 }
 
-func getActualWorkRecords(timesheetCont []string) []ActualWorkRecords {
-	clog.Info("Looking for actual work records.")
-	var actualWorkRecords []ActualWorkRecords
+func getRecordsUntil(timesheetCont []string, marker string) []RawRecord {
+	clog.WithFields(log.Fields{
+		"marker": marker,
+	}).Info("Looking for records until marked line.")
+	var records []RawRecord
 
 	for i := len(timesheetCont) - 1; i >= 0; i-- {
 		wr := strings.TrimSpace(timesheetCont[i])
+
+		// Skip empty lines & comments
 		if len(wr) == 0 || strings.HasPrefix(wr, "#") {
 			continue
 		}
 
-		if wr == ">>> TIRED <<<" {
+		// Stop processing of new lines
+		if strings.HasPrefix(wr, marker) {
 			break
 		}
 
-		awr := ActualWorkRecords{i, wr}
+		// Skip default mark line
+		if strings.HasPrefix(wr, defaultMarker) {
+			continue
+		}
 
-		clog.WithFields(log.Fields{"work record": awr}).Debug("New work record.")
-		actualWorkRecords = append(actualWorkRecords, awr)
+		record := RawRecord{i, wr}
+
+		clog.WithFields(log.Fields{"record": record}).Debug("Adding work record.")
+		records = append(records, record)
 	}
 
-	slices.Reverse(actualWorkRecords)
-	return actualWorkRecords
+	slices.Reverse(records)
+	return records
 }
 
-func parseWorkRecords(records []ActualWorkRecords) ([]WorkRecord, int) {
+func parseWorkRecords(records []RawRecord) ([]WorkRecord, int) {
 	var workRecords []WorkRecord
 	var errCount int
 
 	timeNow = time.Now()
 
-	clog.Info("Parsing actual work records.")
+	clog.Info("Parsing work records.")
 
 	// Location for time
 	location := getTimeLocation()
@@ -84,8 +94,11 @@ func parseWorkRecords(records []ActualWorkRecords) ([]WorkRecord, int) {
 	var wrBefore WorkRecord
 
 	for _, record := range records {
-		// Read original fileds
+		// Read original fields
 		fields := strings.SplitN(record.Record, ",", 5)
+		clog.WithFields(log.Fields{
+			"fields": fields,
+		}).Debug("Record fields.")
 
 		var wr WorkRecord
 		wr.LineNumber = record.LineNumber

@@ -10,8 +10,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var marker string = ">>> TIRED <<<"
-
 func readTimesheet(path string) []string {
 	clog.WithFields(log.Fields{"path": path}).Info("Reading timesheet.")
 
@@ -47,7 +45,7 @@ func writeTimesheet(path string, content []string) {
 	// write a string
 	for i, line := range content {
 		// Remove marker
-		if line == marker {
+		if line == defaultMarker {
 			continue
 		}
 
@@ -62,7 +60,7 @@ func writeTimesheet(path string, content []string) {
 	}
 
 	// Re-add marker to the end of file
-	_, lErr := f.WriteString(marker)
+	_, lErr := f.WriteString(defaultMarker)
 	if lErr != nil {
 		clog.WithFields(log.Fields{"error": lErr}).Fatal("Failed to write the marker.")
 	}
