@@ -3,6 +3,10 @@
 **Tired** stands for **TIme REcorDer** and should help anybody to log his work to Jira issues. For me is much more convenient to log my work at CSV text file using vim than to use Jira UI.
 So using tired one could write any number of formated lines to a file using special format and then just run the utility to push records via Jira API. Only basic auth is supported right now but it's not a problem to add any other type supported by [andygrunwald/go-jira](https://github.com/andygrunwald/go-jira).
 
+## Features
+- Send work records to Jira.
+- Generate repot about daily, weekly and monthly hours spent at work.
+
 ## Timesheet file format
 Colons are: date, start time, end time, Jira issue, commentary.
 
@@ -18,3 +22,16 @@ Example:
 ```
 
 After reporting all lines **Tired** moves timesheet file to the same path but with `.bak` suffix and creates a new timesheet file with the only change. It adds or moves `>>> TIRED <<<` line, which I call marker, to the end of file. During next run **tired** will only push lines below marker. If one wants to re-send any lines, he can move them below `>>> TIRED <<<` marker and restart the utility.
+
+## Usage examples
+### Get Help
+```tired -help```
+
+### Simulate sending records to Jira
+```tired -timesheet ~/timesheet_file -dry```
+
+### Send records to Jira
+```tired -timesheet ~/timesheet_file```
+
+### Generate report about daily, weekly and monthly hours spent
+```tired -timesheet ~/timesheet_file -report```

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 var version string = "1.2.0"
 
 var defaultMarker string = ">>> TIRED <<<"
+var curTime time.Time
 
 var clog *log.Entry
 
@@ -28,6 +30,7 @@ func main() {
 
 	var debug bool
 	var report bool
+	var logReport bool
 	var showVersion bool
 
 	flag.StringVar(&url, "url", "", "Jira url")
@@ -37,16 +40,23 @@ func main() {
 	flag.BoolVar(&debug, "debug", false, "Log debug messages")
 	flag.BoolVar(&dry, "dry", false, "Do a 'dry' run, without real records sending")
 	flag.BoolVar(&report, "report", false, "Show report of daily, weekly and monthly time recorded")
+	flag.BoolVar(&logReport, "logReport", false, "Show log even during preparing a report (-record)")
 	flag.BoolVar(&showVersion, "version", false, "TIme REcorDer version")
 
 	flag.Parse()
 
-	// Setup logging
-	log.SetOutput(os.Stdout)
-
 	if showVersion {
 		fmt.Println(version)
 		os.Exit(0)
+	}
+
+	// Setup logging
+
+	// Do not show log if doing report if not set explicitlly
+	if !logReport && report {
+		log.SetOutput(ioutil.Discard)
+	} else {
+		log.SetOutput(os.Stdout)
 	}
 
 	if debug {
@@ -63,8 +73,11 @@ func main() {
 
 	clog.Info("Starting Jira Time Reporter.")
 
-	curTime := time.Now().Format(time.RFC3339)
-	clog.WithFields(log.Fields{"date": curTime}).Info("Current date and time.")
+	curTime = time.Now()
+
+	clog.WithFields(log.Fields{
+		"date": curTime.Format(time.RFC3339),
+	}).Info("Current date and time.")
 
 	// Validate variables
 	if timesheet == "" {
@@ -98,7 +111,6 @@ func main() {
 }
 
 func createReport(timesheetCont []string) (daily int, weekly int, monthly int) {
-	curTime := time.Now()
 	monthBefore := curTime.AddDate(0, -1, 0)
 
 	lastMonth := fmt.Sprintf("%d-%d-", monthBefore.Year(), monthBefore.Month())
