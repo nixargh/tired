@@ -1,28 +1,23 @@
 package main
 
-import (
-	"encoding/json"
-	"io/ioutil"
-	"path/filepath"
-
-	log "github.com/sirupsen/logrus"
-)
-
-func readCalendar(path string) {
-	clog.WithFields(log.Fields{"path": path}).Info("Reading calendar.")
-
-	absPath, _ := filepath.Abs(path)
-	content, err := ioutil.ReadFile(absPath)
-
-	if err != nil {
-		clog.WithFields(log.Fields{"error": err}).Fatal("Failed to read calendar.")
+func calendar(year int, month int) int {
+	// This is a map of working hours per month
+	calendar := map[int]map[int]int{
+		2024: {
+			1:  136,
+			2:  159,
+			3:  159,
+			4:  168,
+			5:  159,
+			6:  151,
+			7:  184,
+			8:  176,
+			9:  168,
+			10: 184,
+			11: 167,
+			12: 168,
+		},
 	}
 
-	var calendar interface{}
-	err = json.Unmarshal([]byte(content), &calendar)
-	if err != nil {
-		clog.WithFields(log.Fields{
-			"error": err,
-		}).Fatal("Error during convering JSON to data: ")
-	}
+	return calendar[year][month]
 }
