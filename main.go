@@ -12,7 +12,7 @@ import (
 	//	"github.com/pkg/profile"
 )
 
-var version string = "1.2.0"
+var version string = "1.3.0"
 
 var defaultMarker string = ">>> TIRED <<<"
 var curTime time.Time
@@ -95,12 +95,14 @@ func main() {
 	}).Info("Timesheet file total lines number.")
 
 	if report {
+		workingHours := calendar(int(curTime.Year()), int(curTime.Month()))
 		daily, weekly, monthly := createReport(timesheetCont)
 		fmt.Printf(
-			"%.1f, %.1f, %.1f\n",
+			"%.1f, %.1f, %.1f (%d)\n",
 			float32(daily)/3600,
 			float32(weekly)/3600,
 			float32(monthly)/3600,
+			workingHours,
 		)
 	} else {
 		sendToJira(timesheetCont)

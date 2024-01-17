@@ -35,6 +35,3 @@ After reporting all lines **Tired** moves timesheet file to the same path but wi
 
 ### Generate report about daily, weekly and monthly hours spent
 ```tired -timesheet ~/timesheet_file -report```
-
-## TODO
-- Add calendar with working hours.
