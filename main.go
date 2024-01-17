@@ -95,6 +95,7 @@ func main() {
 	}).Info("Timesheet file total lines number.")
 
 	if report {
+		readCalendar("./calendar.yaml")
 		daily, weekly, monthly := createReport(timesheetCont)
 		fmt.Printf(
 			"%.1f, %.1f, %.1f\n",
