@@ -96,6 +96,7 @@ func main() {
 
 	if report {
 		workingHours := calendar(int(curTime.Year()), int(curTime.Month()))
+
 		daily, weekly, monthly := createReport(timesheetCont)
 		fmt.Printf(
 			"%.1f, %.1f, %.1f (%d)\n",
@@ -113,14 +114,15 @@ func main() {
 }
 
 func createReport(timesheetCont []string) (daily int, weekly int, monthly int) {
+	clog.Info("Creating report.")
 	monthBefore := curTime.AddDate(0, -1, 0)
 
-	lastMonth := fmt.Sprintf("%d-%d-", monthBefore.Year(), monthBefore.Month())
+	prefix := fmt.Sprintf("%d-%02d-", monthBefore.Year(), monthBefore.Month())
 	clog.WithFields(log.Fields{
-		"marker": lastMonth,
-	}).Debug("Last month line prefix.")
+		"prefix": prefix,
+	}).Debug("Prefix to filter records by.")
 
-	monthlyRecords := getRecordsUntil(timesheetCont, lastMonth)
+	monthlyRecords := getRecordsUntil(timesheetCont, prefix)
 	clog.WithFields(log.Fields{
 		"number": len(monthlyRecords),
 	}).Info("Monthly records number for a report.")
@@ -134,7 +136,9 @@ func createReport(timesheetCont []string) (daily int, weekly int, monthly int) {
 	}
 
 	for _, record := range records {
-		if record.ParsedStartTime.Day() == curTime.Day() {
+		if record.ParsedStartTime.Year() == curTime.Year() &&
+			record.ParsedStartTime.Month() == curTime.Month() &&
+			record.ParsedStartTime.Day() == curTime.Day() {
 			daily += record.Duration
 		}
 
