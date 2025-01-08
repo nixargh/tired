@@ -12,7 +12,7 @@ import (
 	//	"github.com/pkg/profile"
 )
 
-var version string = "1.3.0"
+var version string = "1.4.0"
 
 var defaultMarker string = ">>> TIRED <<<"
 var curTime time.Time
@@ -140,16 +140,34 @@ func createReport(timesheetCont []string) (daily int, weekly int, monthly int) {
 			record.ParsedStartTime.Month() == curTime.Month() &&
 			record.ParsedStartTime.Day() == curTime.Day() {
 			daily += record.Duration
+
+			clog.WithFields(log.Fields{
+				"record_number": record.LineNumber,
+				"record_year":   record.ParsedStartTime.Year(),
+				"record_month":  record.ParsedStartTime.Month(),
+				"record_day":    record.ParsedStartTime.Day(),
+			}).Debug("Adding to daily.")
 		}
 
 		rWeekY, rWeekN := record.ParsedStartTime.ISOWeek()
 		cWeekY, cWeekN := curTime.ISOWeek()
 		if rWeekY == cWeekY && rWeekN == cWeekN {
 			weekly += record.Duration
+
+			clog.WithFields(log.Fields{
+				"record_number":      record.LineNumber,
+				"record_week_year":   rWeekY,
+				"record_week_number": rWeekN,
+			}).Debug("Adding to weekly.")
 		}
 
 		if record.ParsedStartTime.Month() == curTime.Month() {
 			monthly += record.Duration
+
+			clog.WithFields(log.Fields{
+				"record_number": record.LineNumber,
+				"record_month":  record.ParsedStartTime.Month(),
+			}).Debug("Adding to monthly.")
 		}
 	}
 

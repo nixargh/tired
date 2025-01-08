@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-01-08
+### Changed
+- `calendar.go` add year 2025.
+- `main.go` add debug info for time report to find the reason why report is empty on last day of every month.
+
 ## [1.3.1] - 2024-02-04
 ### Fixed
 - `main.go` fix month number at report generation.
