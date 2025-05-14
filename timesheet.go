@@ -52,8 +52,8 @@ func getRecordsUntil(timesheetCont []string, marker string) []RawRecord {
 	}).Info("Looking for records until marked line.")
 	var records []RawRecord
 
-	for i := len(timesheetCont) - 1; i >= 0; i-- {
-		wr := strings.TrimSpace(timesheetCont[i])
+	for lineNum := len(timesheetCont) - 1; lineNum >= 0; lineNum-- {
+		wr := strings.TrimSpace(timesheetCont[lineNum])
 
 		// Skip empty lines & comments
 		if len(wr) == 0 || strings.HasPrefix(wr, "#") {
@@ -70,7 +70,7 @@ func getRecordsUntil(timesheetCont []string, marker string) []RawRecord {
 			continue
 		}
 
-		record := RawRecord{i, wr}
+		record := RawRecord{lineNum + 1, wr}
 
 		clog.WithFields(log.Fields{"record": record}).Debug("Adding work record.")
 		records = append(records, record)
@@ -113,7 +113,7 @@ func parseWorkRecords(records []RawRecord) ([]WorkRecord, int) {
 			wr.EndTime = "23:59"
 		}
 
-		// Do not validate records with an empty EndTime as they haven't been compleated yet.
+		// Do not validate records with an empty EndTime as they haven't been completed yet.
 		if wr.EndTime == "" {
 			clog.WithFields(log.Fields{
 				"line": wr.LineNumber,
@@ -174,12 +174,12 @@ func validateRawRecord(wr *WorkRecord) bool {
 		valid = false
 	}
 
-	matched, ierr := regexp.MatchString(`^[A-Z-]+-\d+$`, wr.Issue)
+	matched, ierr := regexp.MatchString(`^[A-Z-_]+-\d+$`, wr.Issue)
 	if ierr != nil || !matched {
 		clog.WithFields(log.Fields{
 			"line":  wr.LineNumber,
 			"issue": wr.Issue,
-		}).Error("Bad Jira issue number.")
+		}).Error("Bad issue/task ID.")
 
 		valid = false
 	}

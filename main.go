@@ -12,7 +12,7 @@ import (
 	//	"github.com/pkg/profile"
 )
 
-var version string = "1.4.0"
+var version string = "1.5.0"
 
 var defaultMarker string = ">>> TIRED <<<"
 var curTime time.Time
@@ -71,7 +71,7 @@ func main() {
 		"version": version,
 	})
 
-	clog.Info("Starting Jira Time Reporter.")
+	clog.Info("Starting TIme REcorDer.")
 
 	curTime = time.Now()
 
