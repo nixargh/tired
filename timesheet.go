@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"slices"
 	"strings"
@@ -31,7 +31,7 @@ type WorkRecord struct {
 }
 
 func getTimeLocation() *time.Location {
-	timezoneRaw, err := ioutil.ReadFile("/etc/timezone")
+	timezoneRaw, err := os.ReadFile("/etc/timezone")
 	if err != nil {
 		clog.WithFields(log.Fields{"error": err}).Fatal("Failed to read '/etc/timezone'.")
 	}

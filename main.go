@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"time"
 
@@ -54,7 +54,7 @@ func main() {
 
 	// Do not show log if doing report if not set explicitlly
 	if !logReport && report {
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 	} else {
 		log.SetOutput(os.Stdout)
 	}
@@ -223,7 +223,7 @@ func sendToJira(timesheetCont []string) {
 			}).Fatal("Jira Time Reporter finished with errors.")
 		}
 
-		if dry == false {
+		if !dry {
 			writeTimesheet(timesheet, timesheetCont)
 
 			// Compare timesheet file size before and after changes

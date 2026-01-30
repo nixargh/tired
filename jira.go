@@ -33,7 +33,7 @@ func sendWorkRecords(jiraClient *jira.Client, records []WorkRecord, dry bool) in
 			TimeSpentSeconds: record.Duration,
 		}
 
-		if dry == false {
+		if !dry {
 			_, _, aErr := jiraClient.Issue.AddWorklogRecord(record.Issue, &workRec)
 			if err != nil {
 				clog.WithFields(log.Fields{"issue": record.Issue, "error": aErr}).Error("Failed to add Work Record to the issue.")
