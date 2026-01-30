@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,7 +13,7 @@ func readTimesheet(path string) []string {
 	clog.WithFields(log.Fields{"path": path}).Info("Reading timesheet.")
 
 	absPath, _ := filepath.Abs(path)
-	content, err := ioutil.ReadFile(absPath)
+	content, err := os.ReadFile(absPath)
 
 	if err != nil {
 		clog.WithFields(log.Fields{"error": err}).Fatal("Failed to read timesheet.")
@@ -32,7 +31,10 @@ func writeTimesheet(path string, content []string) {
 	bkpPath := fmt.Sprintf("%s.bak", absPath)
 
 	// Move old file as backup
-	os.Rename(absPath, bkpPath)
+	err := os.Rename(absPath, bkpPath)
+	if err != nil {
+		clog.WithFields(log.Fields{"error": err}).Fatal("Failed to rename the file.")
+	}
 
 	// create the file
 	f, err := os.Create(absPath)
@@ -40,7 +42,12 @@ func writeTimesheet(path string, content []string) {
 		clog.WithFields(log.Fields{"error": err}).Fatal("Failed to create the file.")
 	}
 
-	defer f.Close()
+	defer func() {
+		err := f.Close()
+		if err == nil {
+			clog.WithFields(log.Fields{"error": err}).Fatal("Failed to close the file.")
+		}
+	}()
 
 	// write a string
 	for i, line := range content {
