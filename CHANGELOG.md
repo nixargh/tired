@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Lint errors.
 
+### Added
+- `CI` add **golangci**.
+
 ### Changed
 - `calendar.go` add year 2026.
 - `go.mod` all modules updated to the latest version.
