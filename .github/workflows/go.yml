@@ -2,9 +2,12 @@ name: Go
 
 on:
   push:
-    # Sequence of patterns matched against refs/tags
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+  create:
     tags:
-    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - 'v*'
 
 jobs:
   golangci:
@@ -22,11 +25,13 @@ jobs:
 
   tagged-release-binaries:
     # Only on tags.
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - golangci
     name: Tagged release binaries
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Extract tag
         shell: bash
