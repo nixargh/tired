@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - `go.mo` update **Go** to **v1.26.0**.
+- `CI` update **golangci-lint** to **v2.12**.
 
 ## [v1.6.0] - 2025-01-30
 ### Fixed
