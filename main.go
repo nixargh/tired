@@ -136,9 +136,9 @@ func createReport(timesheetCont []string) (daily int, weekly int, monthly int) {
 	}
 
 	for _, record := range records {
-		if record.ParsedStartTime.Year() == curTime.Year() &&
-			record.ParsedStartTime.Month() == curTime.Month() &&
-			record.ParsedStartTime.Day() == curTime.Day() {
+		if record.ParsedStartTime.Year() == monthBefore.Year() &&
+			record.ParsedStartTime.Month() == monthBefore.Month() &&
+			record.ParsedStartTime.Day() == monthBefore.Day() {
 			daily += record.Duration
 
 			clog.WithFields(log.Fields{
@@ -150,7 +150,7 @@ func createReport(timesheetCont []string) (daily int, weekly int, monthly int) {
 		}
 
 		rWeekY, rWeekN := record.ParsedStartTime.ISOWeek()
-		cWeekY, cWeekN := curTime.ISOWeek()
+		cWeekY, cWeekN := monthBefore.ISOWeek()
 		if rWeekY == cWeekY && rWeekN == cWeekN {
 			weekly += record.Duration
 
@@ -161,7 +161,7 @@ func createReport(timesheetCont []string) (daily int, weekly int, monthly int) {
 			}).Debug("Adding to weekly.")
 		}
 
-		if record.ParsedStartTime.Month() == curTime.Month() {
+		if record.ParsedStartTime.Month() == monthBefore.Month() {
 			monthly += record.Duration
 
 			clog.WithFields(log.Fields{
