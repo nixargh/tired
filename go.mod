@@ -1,6 +1,6 @@
 module github.com/nixargh/tired
 
-go 1.25
+go 1.26
 
 require (
 	github.com/andygrunwald/go-jira v1.17.0
